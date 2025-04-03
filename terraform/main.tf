@@ -35,6 +35,7 @@ resource "azurerm_network_interface" "nic" {
   name                = "devops-nic-${var.environment}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+
   ip_configuration {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.subnet.id
@@ -47,6 +48,11 @@ resource "azurerm_network_security_group" "nsg" {
   name                = "devops-nsg-${var.environment}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_network_interface_security_group_association" "nic-sg" {
+  network_interface_id      = azurerm_network_interface.nic.id
+  network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
 resource "azurerm_network_security_rule" "allow_ports" {

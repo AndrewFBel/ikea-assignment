@@ -14,7 +14,7 @@ Expected Submission: Ok: Terraform script with an outputs.tf file showing the in
 Preferably: Repository with github action webhook to trigger the build.
 
 ## Task 2: CI/CD Pipeline
- Create a GitHub Actions:
+Create a GitHub Actions:
 -  Builds a simple Node.js application
 -  Packages the app into a Docker container
 -  Pushes the Docker image to Azure CR
@@ -46,6 +46,7 @@ Expected Submission: Demo of the deploy.
 Related terrafrom files are located at `./terraform` directory. Given the low complexity, all configs are in single `main.tf` file without any further structuring.
 
 In order to deploy Azure VM locally, run the following commands in the related directory. Update variables in `./terraform/terraform.tfvars` as needed.
+- export SSH key which will be used to access VM: `export TF_VAR_ssh_public_key = "ssh-rsa AAAAByour-super-key email@machine-name"` 
 - `az login`
 - `terraform init`
 - `terraform apply` or `terraform apply -auto-approve`
@@ -53,7 +54,18 @@ The public IP address of the VM will be output after the execution.
 
 ### Deployment via GHA
 
+*Prerequisites*
+- Create Azure Managed Identity, grant it access to Subscription and add Federated credentials
+- Add following env vars to GHA secrets:
+    - AZURE_SUBSCRIPTION_ID
+    - AZURE_TENANT_ID
+    - AZURE_CLIENT_ID
+    - AZURE_REGISTRY_LOGIN_SERVER
+    - AZURE_REGISTRY_PASSWORD
+    - AZURE_REGISTRY_USERNAME
+    - VM_SSH_PUBLIC_KEY (used to access VM)
 
+The GHA workflow is located at `.github/workflows/terraform.yaml` and, in current solution, has only a manual [trigger](https://github.com/AndrewFBel/ikea-assignment/actions/workflows/terraform.yaml).
 
 ### Further Improvements
 
@@ -64,5 +76,10 @@ The public IP address of the VM will be output after the execution.
     - or, alternatively, use terraform namespaces
 - Improve GitHub Actions workflow to allow triggering it, using environment as an input variable
 - Security improvements (eg, run docker as a non-root user, etc)
+- Output public IP directly to GHA run results summary
+- Better branching strategy and GHA triggers to manage workflows
+- Use registry/GitHub-local storage for caching
+- Output and send (if needed) build artefacts
+- Implement alerting for terraform warnings
 
 P.S. `*.tfvars` entry was removed from `.gitignore` for illustrative purposes

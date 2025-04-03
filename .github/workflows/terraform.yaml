@@ -24,10 +24,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: az cli install
-      run: |
-        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
     - name: Azure login
       uses: azure/login@v2
       with:
