@@ -60,9 +60,6 @@ The public IP address of the VM will be output after the execution.
     - AZURE_SUBSCRIPTION_ID
     - AZURE_TENANT_ID
     - AZURE_CLIENT_ID
-    - AZURE_REGISTRY_LOGIN_SERVER
-    - AZURE_REGISTRY_PASSWORD
-    - AZURE_REGISTRY_USERNAME
     - VM_SSH_PUBLIC_KEY (used to access VM)
 
 The GHA workflow is located at `.github/workflows/terraform.yaml` and, in current solution, has only a manual [trigger](https://github.com/AndrewFBel/ikea-assignment/actions/workflows/terraform.yaml).
@@ -77,9 +74,31 @@ The GHA workflow is located at `.github/workflows/terraform.yaml` and, in curren
 - Improve GitHub Actions workflow to allow triggering it, using environment as an input variable
 - Security improvements (eg, run docker as a non-root user, etc)
 - Output public IP directly to GHA run results summary
+- Ensure that `terraform apply` runs only after approval (eg, via PR)
 - Better branching strategy and GHA triggers to manage workflows
-- Use registry/GitHub-local storage for caching
 - Output and send (if needed) build artefacts
 - Implement alerting for terraform warnings
 
 P.S. `*.tfvars` entry was removed from `.gitignore` for illustrative purposes
+
+## Task 2: CI/CD Pipeline
+
+GitHub Actions workflow is located at `.github/workflows/node.yaml`. It has triggers in `push` and `pull request` events towards the `main` branch. Besides, it can be [triggered manually](https://github.com/AndrewFBel/ikea-assignment/actions/workflows/node.yaml).
+
+The workflow builds Docker Image and pushes it with the `latest` tag to ACR (created manually in advance).
+The following GHA secrets needs to be added:
+    - AZURE_REGISTRY_LOGIN_SERVER
+    - AZURE_REGISTRY_PASSWORD
+    - AZURE_REGISTRY_USERNAME
+
+### Further Improvements
+
+- When the complexity of the project incerases:
+    - use multi-stage Docker builds
+    - minimise number of loyers to keep image lightweight
+- Better branching strategy and GHA triggers to manage workflows
+- Use registry/GitHub-local storage for caching
+- Use Node linter and tests (+ store its artifacts)
+- Improve image versioning (using app version, eg, `node-app:v1.0.0`, or commit hash, eg, `node-app:${GITHUB_SHA}`)
+
+## Task 3: Monitoring , logging + blue/green deploy
