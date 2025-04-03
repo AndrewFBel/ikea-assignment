@@ -1,5 +1,19 @@
 # Assignment
 
+- [Assignment](#assignment)
+  - [Task 1: Infrastructure Setup](#task-1-infrastructure-setup)
+  - [Task 2: CI/CD Pipeline](#task-2-cicd-pipeline)
+  - [Task 3: Monitoring , logging + blue/green deploy](#task-3-monitoring--logging--bluegreen-deploy)
+- [Solution Notes](#solution-notes)
+  - [Task 1: Infrastructure Setup](#task-1-infrastructure-setup-1)
+    - [Local Deployment](#local-deployment)
+    - [Deployment via GHA](#deployment-via-gha)
+    - [Further Improvements](#further-improvements)
+  - [Task 2: CI/CD Pipeline](#task-2-cicd-pipeline-1)
+    - [Further Improvements](#further-improvements-1)
+  - [Task 3: Monitoring , logging + blue/green deploy](#task-3-monitoring--logging--bluegreen-deploy-1)
+
+
 ## Task 1: Infrastructure Setup
 
 Write a Terraform script (main.tf) that:
