@@ -49,9 +49,13 @@ jobs:
       working-directory: ./terraform
 
     - name: Terraform Plan
+      env:
+        TF_VAR_ssh_public_key: ${{ secrets.VM_SSH_PUBLIC_KEY }}
       run: terraform plan -out=tfplan
       working-directory: ./terraform
 
     - name: Terraform Apply
+      env:
+        TF_VAR_ssh_public_key: ${{ secrets.VM_SSH_PUBLIC_KEY }}
       run: terraform apply -auto-approve tfplan
       working-directory: ./terraform

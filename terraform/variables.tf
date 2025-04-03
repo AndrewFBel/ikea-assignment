@@ -8,6 +8,10 @@ variable "allowed_ports" {
   default     = [80, 22]
 }
 
+variable "ssh_public_key" {
+  type = string
+}
+
 variable "location" {
   type        = string
   default     = "West Europe"
