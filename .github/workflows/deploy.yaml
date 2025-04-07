@@ -80,15 +80,14 @@ jobs:
           --docker-registry-server-password ${{ secrets.AZURE_REGISTRY_PASSWORD }}
 
     - name: Wait for 90s to stabilize
-      run: sleep 90
+      run: sleep 300
 
     - name: Fetch App Insights logs
       id: logcheck
       run: |
-        TIMESTAMP=$(date -u -d "2 minutes ago" +"%Y-%m-%dT%H:%M:%SZ")
         ERRORS=$(az monitor log-analytics query \
           --workspace $ANALYTICS_WORKSPACE_ID \
-          --analytics-query "AppServiceConsoleLogs | where TimeGenerated > datetime($TIMESTAMP) | where Level == 'Error' | count" \
+          --analytics-query "AppServiceConsoleLogs | where TimeGenerated > ago(5m) | where Level == 'Error' | count" \
           --query "[0].Count" \
           --output tsv)
         echo "errors=${ERRORS}" >> $GITHUB_OUTPUT
