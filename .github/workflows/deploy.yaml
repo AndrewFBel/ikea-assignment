@@ -1,0 +1,106 @@
+name: Deploy to Azure WebApp
+
+on:
+  workflow_run:
+    workflows: ["Node App"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Image tag'
+        required: true
+        default: 'latest'
+
+permissions:
+  id-token: write
+
+env:
+  ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
+  ARM_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+  ARM_TENANT_ID: "${{ secrets.AZURE_TENANT_ID }}"
+  RESOURCE_GROUP: node-app
+  WEBAPP_NAME: node-app-web
+  ANALYTICS_WORKSPACE_ID: 3f19e395-a518-4bef-8d53-d4e226230edb 
+  CONTAINER_PORT: 80
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    name: Deploy to Azure WebApp
+    runs-on: ubuntu-latest
+    env:
+      ARM_SKIP_PROVIDER_REGISTRATION: true
+    
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: az cli install
+      run: |
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+    - name: Azure login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: ACR login
+      uses: azure/docker-login@v2
+      with:
+        login-server: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}
+        username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
+        password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
+
+    - name: Pull Docker image
+      run: |
+        docker pull ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/node-app:${{ github.event.inputs.version }}
+
+    - name: Get current version
+      run: |
+        az webapp config container show --name $WEBAPP_NAME --resource-group $RESOURCE_GROUP \
+          --query "[?name=='DOCKER_CUSTOM_IMAGE_NAME'].value | [0]" \
+          --output tsv | cut -d':' -f > live_version.txt
+
+    - name: Deploy new version
+      run: |
+        az webapp config container set \
+          --name $WEBAPP_NAME \
+          --resource-group $RESOURCE_GROUP \
+          --docker-custom-image-name ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/node-app:${{ github.event.inputs.version }} \
+          --docker-registry-server-url https://${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }} \
+          --docker-registry-server-user ${{ secrets.AZURE_REGISTRY_USERNAME }} \
+          --docker-registry-server-password ${{ secrets.AZURE_REGISTRY_PASSWORD }}
+
+    - name: Wait for 90s to stabilize
+      run: sleep 90
+
+    - name: Fetch App Insights logs
+      id: logcheck
+      run: |
+        TIMESTAMP=$(date -u -v-2M +"%Y-%m-%dT%H:%M:%SZ")
+        ERRORS=$(az monitor log-analytics query \
+          --workspace $ANALYTICS_WORKSPACE_ID \
+          --analytics-query "AppTraces | where TimeGenerated > datetime($TIMESTAMP) | where SeverityLevel >= 3 | count" \
+          --query "[0].Count" \
+          --output tsv
+        echo "errors=${ERRORS}" >> $GITHUB_OUTPUT
+
+    - name: Roll back if too many errors
+      if: steps.logcheck.outputs.errors > 5
+      run: |
+        echo "Too many errors detected, rolling back..."
+        OLD_VERSION=$(cat live_version.txt)
+        az webapp config container set \
+          --name $WEBAPP_NAME \
+          --resource-group $RESOURCE_GROUP \
+          --docker-custom-image-name ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/node-app:$OLD_VERSION \
+          --docker-registry-server-url https://${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }} \
+          --docker-registry-server-user ${{ secrets.AZURE_REGISTRY_USERNAME }} \
+          --docker-registry-server-password ${{ secrets.AZURE_REGISTRY_PASSWORD }}
