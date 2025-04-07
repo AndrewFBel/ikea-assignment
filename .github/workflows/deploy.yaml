@@ -90,7 +90,7 @@ jobs:
           --workspace $ANALYTICS_WORKSPACE_ID \
           --analytics-query "AppTraces | where TimeGenerated > datetime($TIMESTAMP) | where SeverityLevel >= 3 | count" \
           --query "[0].Count" \
-          --output tsv
+          --output tsv)
         echo "errors=${ERRORS}" >> $GITHUB_OUTPUT
 
     - name: Roll back if too many errors
