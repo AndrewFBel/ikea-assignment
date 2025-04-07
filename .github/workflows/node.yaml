@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - test
     paths:
       - 'node-app/**'
   pull_request:
@@ -34,7 +35,7 @@ jobs:
     - name: Build Image
       run: |
         cd ./node-app
-        docker build --cache-from=node:23-alpine3.21 -t node-app:latest .
+        docker build --cache-from=node:23-alpine3.21 -t node-app:${GITHUB_SHA::7} .
     
     - name: Log in to ACR
       uses: azure/docker-login@v2
@@ -45,5 +46,5 @@ jobs:
 
     - name: Tag & Push
       run: |
-        docker tag node-app:latest ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/node-app:latest
-        docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/node-app:latest
+        docker tag node-app:${GITHUB_SHA::7} ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/node-app:${GITHUB_SHA::7}
+        docker push ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/node-app:${GITHUB_SHA::7}
