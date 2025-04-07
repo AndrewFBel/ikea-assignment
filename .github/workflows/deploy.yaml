@@ -26,7 +26,7 @@ env:
 
 jobs:
   deploy:
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     name: Deploy to Azure WebApp
     runs-on: ubuntu-latest
     env:
