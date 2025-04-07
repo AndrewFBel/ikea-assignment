@@ -10,8 +10,11 @@
     - [Deployment via GHA](#deployment-via-gha)
     - [Further Improvements](#further-improvements)
   - [Task 2: CI/CD Pipeline](#task-2-cicd-pipeline-1)
+    - [Current Solution](#current-solution)
     - [Further Improvements](#further-improvements-1)
   - [Task 3: Monitoring , logging + blue/green deploy](#task-3-monitoring--logging--bluegreen-deploy-1)
+    - [Current Solution](#current-solution-1)
+    - [Further Improvements](#further-improvements-2)
 
 
 ## Task 1: Infrastructure Setup
@@ -97,6 +100,8 @@ P.S. `*.tfvars` entry was removed from `.gitignore` for illustrative purposes
 
 ## Task 2: CI/CD Pipeline
 
+### Current Solution
+
 GitHub Actions workflow is located at `.github/workflows/node.yaml`. It has triggers in `push` and `pull request` events towards the `main` branch. Besides, it can be [triggered manually](https://github.com/AndrewFBel/ikea-assignment/actions/workflows/node.yaml).
 
 The workflow builds Docker Image and pushes it with the `latest` tag to ACR (created manually in advance).
@@ -116,3 +121,27 @@ The following GHA secrets needs to be added:
 - Improve image versioning (using app version, eg, `node-app:v1.0.0`, or commit hash, eg, `node-app:${GITHUB_SHA}`)
 
 ## Task 3: Monitoring , logging + blue/green deploy
+
+### Current Solution
+
+Workflow at `.github/workflows/deploy.yaml` deploys image to Azure WebApp. It has basic release safety feature, implemented using log monitoring and rollback option.
+
+Triggers:
+- manual dispatch
+- successful image build workflow
+
+Flow: 
+- Pulls image from ACR and deploys to Azure WebApp
+- Waits 10 minutes (Azure delay) to query logs from Logs Analytic workplace
+- Checks number of Error-level logs durng past 10 mins
+- Rolls back to previous image if number of errors > 5
+
+P.S. Azure delay can be up to 15 mins for Log Analytics
+
+### Further Improvements
+
+- Use Aure WebApp slots for blue-green deployent or Azure Containers/AKS
+- Add application health-check API endpoint
+- Improve loggint (eg, Application Insights) + specific metrics
+- Better branching and taging strategies
+- Implement notificatons
