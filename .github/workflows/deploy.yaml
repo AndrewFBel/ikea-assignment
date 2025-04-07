@@ -67,7 +67,7 @@ jobs:
       run: |
         az webapp config container show --name $WEBAPP_NAME --resource-group $RESOURCE_GROUP \
           --query "[?name=='DOCKER_CUSTOM_IMAGE_NAME'].value | [0]" \
-          --output tsv | cut -d':' -f > live_version.txt
+          --output tsv | cut -d':' -f2 > live_version.txt
 
     - name: Deploy new version
       run: |
