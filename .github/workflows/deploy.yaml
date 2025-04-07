@@ -85,7 +85,7 @@ jobs:
     - name: Fetch App Insights logs
       id: logcheck
       run: |
-        TIMESTAMP=$(date -u -v-2M +"%Y-%m-%dT%H:%M:%SZ")
+        TIMESTAMP=$(date -u -d "2 months ago" +"%Y-%m-%dT%H:%M:%SZ")
         ERRORS=$(az monitor log-analytics query \
           --workspace $ANALYTICS_WORKSPACE_ID \
           --analytics-query "AppTraces | where TimeGenerated > datetime($TIMESTAMP) | where SeverityLevel >= 3 | count" \
