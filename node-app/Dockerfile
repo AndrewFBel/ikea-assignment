@@ -8,9 +8,9 @@ COPY ./src ./src
 RUN addgroup -S nodegroup && adduser -S nodeuser -G nodegroup
 USER nodeuser
 
-EXPOSE 3000
+EXPOSE 80
 
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=80
 
 CMD ["node", "src/index.js"]
