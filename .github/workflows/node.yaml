@@ -5,12 +5,12 @@ on:
     branches:
       - main
     paths:
-      - './node-app/**'
+      - 'node-app/**'
   pull_request:
     branches:
       - main
     paths:
-      - './node-app/**'
+      - 'node-app/**'
   workflow_dispatch:
 
 jobs:
